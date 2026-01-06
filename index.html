@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Gestión - 2025</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p>Cargando datos...</p>
+    </div>
+
+    <div class="dashboard-container" id="mainContent" style="display: none;">
+        <!-- Header -->
+        <header class="dashboard-header">
+    <div class="header-left">
+        <img src="LogoMD.jpg" alt="Logo" class="header-logo">
+        <h1>DASHBOARD DE GESTIÓN - ANUAL 2025</h1>
+    </div>
+    <button onclick="recargarDatos()" class="btn-reload">🔄 Actualizar</button>
+</header>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Columna Izquierda - KPIs -->
+            <aside class="sidebar-left">
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon">📁</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Total registros cargados</div>
+                        <div class="kpi-value" id="totalRegistrosCargados">0</div>
+                    </div>
+                </div>
+
+                
+
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon">⚙️</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Efectividad V/BBDD</div>
+                        <div class="kpi-value" id="efectividadVBDD">0%</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-dark">
+                    <div class="kpi-icon">📊</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">NAP Anual</div>
+                        <div class="kpi-value" id="napAnual">0</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon">💼</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Negocios Anuales 2025</div>
+                        <div class="kpi-value" id="negociosAnuales">0</div>
+                    </div>
+                </div>
+
+                
+            </aside>
+
+            <!-- Centro - Gráfico Principal -->
+            <main class="main-content">
+                <div class="chart-main-container">
+                    <h2 class="chart-main-title">AVANCE NAP - EQUIPOS REMOTOS</h2>
+                    <div class="filter-bar">
+                        <select id="filtroCoordinadorMain" onchange="aplicarFiltros()">
+                            <option value="">Todos los Coordinadores</option>
+                        </select>
+                        <select id="filtroClinicaMain" onchange="aplicarFiltros()">
+                            <option value="">Todas las Clínicas</option>
+                        </select>
+                        <button onclick="limpiarFiltros()" class="btn-clear">Limpiar</button>
+                    </div>
+                    <canvas id="chartNAPMensual"></canvas>
+                    <p class="chart-subtitle">Análisis Anual</p>
+                </div>
+
+                
+            </main>
+
+            <!-- Columna Derecha - Highlights -->
+            <aside class="sidebar-right">
+                <div class="highlight-card highlight-blue">
+                    <div class="highlight-icon">👥</div>
+                    <div class="highlight-content">
+                        <div class="highlight-label">Dotación total</div>
+                        <div class="highlight-value" id="dotacionTotal">0 ejecutivos</div>
+                    </div>
+                </div>
+
+                <div class="highlight-card highlight-gold">
+                    <div class="highlight-icon">🏆</div>
+                    <div class="highlight-content">
+                        <div class="highlight-label">TOP NAP</div>
+                        <div class="highlight-value" id="topNAP">-</div>
+                        <div class="highlight-detail" id="topNAPValor">-</div>
+                    </div>
+                </div>
+
+                <div class="highlight-card highlight-green">
+                    <div class="highlight-icon">📦</div>
+                    <div class="highlight-content">
+                        <div class="highlight-label">TOP NEGOCIOS ANUAL</div>
+                        <div class="highlight-value" id="topNegocios">-</div>
+                        <div class="highlight-detail" id="topNegociosValor">0 negocios</div>
+                    </div>
+                </div>
+
+                
+                <div class="highlight-card highlight-blue-alt">
+                    <div class="highlight-icon">📅</div>
+                    <div class="highlight-content">
+                        <div class="highlight-label">Mes mayor NAP</div>
+                        <div class="highlight-value" id="mesMayorNAP">-</div>
+                        <div class="highlight-detail" id="mesMayorNAPValor">-</div>
+                    </div>
+                </div>
+
+                <div class="highlight-card highlight-green">
+                    <div class="highlight-icon">📊</div>
+                    <div class="highlight-content">
+                        <div class="highlight-label">Negocios promedio mensual</div>
+                        <div class="highlight-value" id="negociosPromedio">0</div>
+                    </div>
+                </div>
+
+                <div class="highlight-card highlight-blue-dark">
+                    <div class="highlight-icon">🎯</div>
+                    <div class="highlight-content">
+                        <div class="highlight-label">TOP NAP por Clínica</div>
+                        <div class="highlight-value" id="topClinica">-</div>
+                        <div class="highlight-detail" id="topClinicaValor">-</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Sección de Gráficos por Clínica -->
+        <div class="clinica-section">
+            <h2 class="section-title">INDICADORES POR CLÍNICA</h2>
+            <div class="clinica-charts">
+                                <div class="chart-card">
+                    <h3>Negocios Por Clinica</h3>
+                    <canvas id="chartEficiencia"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Detallada -->
+        <div class="table-section">
+            <h2 class="section-title">DETALLE POR COORDINADOR Y CLÍNICA</h2>
+            <div class="table-controls">
+                <input type="text" id="searchTable" placeholder="Buscar..." onkeyup="buscarEnTabla()">
+                <button onclick="exportarCSV()" class="btn-export">📥 Exportar CSV</button>
+            </div>
+            <div class="table-container">
+                <table id="tablaDetalle">
+                    <thead>
+                        <tr>
+                            <th onclick="ordenarTabla(0)">Coordinador ▼</th>
+                            <th onclick="ordenarTabla(1)">Clínica ▼</th>
+                            <th onclick="ordenarTabla(2)">Equipo ▼</th>
+                            <th onclick="ordenarTabla(3)">Mes ▼</th>
+                            <th onclick="ordenarTabla(4)">NAP ▼</th>
+                            <th onclick="ordenarTabla(5)">Negocios ▼</th>
+                            <th onclick="ordenarTabla(6)">Dotación ▼</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaDetalleBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURACIÓN ==========
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzdnAl09Qdg4G_pWTNjuo40z9pTkGVjvvAR8kVkseoAr6qaQNUyckWiTshVPLtKVZU/exec';
+        
+        let datosTabla1 = [];
+        let datosTabla2 = [];
+        let datosFiltrados = [];
+        let charts = {};
+        let ordenAscendente = true;
+
+        const ordenMeses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 
+                           'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+
+        // ========== CARGA DE DATOS ==========
+        async function cargarDatos() {
+            try {
+                if (API_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI') {
+                    throw new Error('⚠️ Configura la URL del API en index.html (línea 185)');
+                }
+                
+                mostrarLoader(true);
+                console.log('Iniciando carga de datos desde:', API_URL);
+                
+                const response = await fetch(API_URL, { method: 'GET', redirect: 'follow' });
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Respuesta completa del API:', result);
+                
+                if (result.success) {
+                    datosTabla1 = result.data.tabla1 || [];
+                    datosTabla2 = result.data.tabla2 || [];
+                    datosFiltrados = [...datosTabla1];
+                    
+                    console.log('Datos cargados:');
+                    console.log('- Tabla 1 (Proyección):', datosTabla1.length, 'registros');
+                    console.log('- Tabla 2 (BBDD):', datosTabla2.length, 'registros');
+                    
+                    if (datosTabla1.length > 0) {
+                        console.log('Ejemplo primer registro Tabla1:', datosTabla1[0]);
+                    }
+                    
+                    if (datosTabla2.length > 0) {
+                        console.log('Ejemplo primer registro Tabla2:', datosTabla2[0]);
+                    }
+                    
+                    if (datosTabla1.length === 0) {
+                        throw new Error('No se encontraron datos en Tabla1. Verifica que la hoja "Tabla1_Proyeccion" contenga datos.');
+                    }
+                    
+                    inicializarFiltros();
+                    actualizarDashboard();
+                    mostrarLoader(false);
+                } else {
+                    throw new Error(result.message || result.error || 'Error del servidor');
+                }
+            } catch (error) {
+                console.error('Error detallado:', error);
+                mostrarLoader(false);
+                alert('Error al cargar datos: ' + error.message + '\n\nRevisa la consola (F12) para más detalles.');
+            }
+        }
+
+        function mostrarLoader(mostrar) {
+            document.getElementById('loader').style.display = mostrar ? 'flex' : 'none';
+            document.getElementById('mainContent').style.display = mostrar ? 'none' : 'block';
+        }
+
+        function recargarDatos() {
+            cargarDatos();
+        }
+
+        // ========== FILTROS ==========
+        function inicializarFiltros() {
+            const coordinadores = [...new Set(datosTabla1.map(d => d.Coordinador))].filter(c => c).sort();
+            const selectCoord = document.getElementById('filtroCoordinadorMain');
+            selectCoord.innerHTML = '<option value="">Todos los Coordinadores</option>';
+            coordinadores.forEach(coord => {
+                selectCoord.innerHTML += `<option value="${coord}">${coord}</option>`;
+            });
+
+            const clinicas = [...new Set(datosTabla1.map(d => d.Clinica))].filter(c => c).sort();
+            const selectClinica = document.getElementById('filtroClinicaMain');
+            selectClinica.innerHTML = '<option value="">Todas las Clínicas</option>';
+            clinicas.forEach(clinica => {
+                selectClinica.innerHTML += `<option value="${clinica}">${clinica}</option>`;
+            });
+        }
+
+        function aplicarFiltros() {
+            const coordinador = document.getElementById('filtroCoordinadorMain').value;
+            const clinica = document.getElementById('filtroClinicaMain').value;
+
+            datosFiltrados = datosTabla1.filter(d => {
+                return (!coordinador || d.Coordinador === coordinador) &&
+                       (!clinica || d.Clinica === clinica);
+            });
+
+            actualizarDashboard();
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtroCoordinadorMain').value = '';
+            document.getElementById('filtroClinicaMain').value = '';
+            datosFiltrados = [...datosTabla1];
+            actualizarDashboard();
+        }
+
+        // ========== ACTUALIZAR DASHBOARD ==========
+        function actualizarDashboard() {
+            console.log('Actualizando dashboard...');
+            console.log('Datos filtrados:', datosFiltrados.length);
+            console.log('Datos tabla2:', datosTabla2.length);
+            
+            if (datosFiltrados.length === 0) {
+                console.warn('No hay datos filtrados para mostrar');
+                alert('No hay datos que coincidan con los filtros seleccionados');
+                return;
+            }
+            
+            try {
+                actualizarKPIs();
+                actualizarHighlights();
+                actualizarGraficoNAPMensual();
+                //actualizarGraficoNegociosCoordinador();
+                actualizarGraficosClinica();
+                actualizarTablaDetalle();
+                console.log('Dashboard actualizado correctamente');
+            } catch (error) {
+                console.error('Error al actualizar dashboard:', error);
+                alert('Error al actualizar el dashboard: ' + error.message);
+            }
+        }
+
+        function actualizarKPIs() {
+            const totalNAP = datosFiltrados.reduce((sum, d) => sum + (parseFloat(d.NAP) || 0), 0);
+            const totalNegocios = datosFiltrados.reduce((sum, d) => sum + (parseFloat(d.Negocios) || 0), 0);
+            const totalDotacion = datosFiltrados.reduce((sum, d) => sum + (parseFloat(d.Dotacion_Activa) || 0), 0);
+            const totalRegistros = datosTabla2.reduce((sum, d) => sum + (parseFloat(d.Registros_Cargados) || 0), 0);
+            const totalVBDD = datosTabla2.reduce((sum, d) => sum + (parseFloat(d.V_BDD) || 0), 0);
+
+            const contactabilidad = totalVBDD > 0 ? ((totalRegistros / totalVBDD) * 100).toFixed(1) : 0;
+            const efectividad = totalRegistros > 0 ? ((totalNAP / totalRegistros) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalRegistrosCargados').textContent = formatNumber(totalRegistros);
+            //document.getElementById('contactabilidadTotal').textContent = contactabilidad + '%';
+            document.getElementById('efectividadVBDD').textContent = efectividad + '%';
+            document.getElementById('napAnual').textContent = formatNumber(totalNAP);
+            document.getElementById('negociosAnuales').textContent = formatNumber(totalNegocios);
+            //document.getElementById('registrosTotales').textContent = formatNumber(totalRegistros);
+        }
+
+        function actualizarHighlights() {
+    // Usar SIEMPRE datosTabla1 completos (sin filtrar) para los highlights
+    // Dotación total - sumar todas las dotaciones únicas por coordinador
+    const dotacionPorCoordinador = {};
+    datosTabla1.forEach(d => {
+        if (d.Coordinador) {
+            if (!dotacionPorCoordinador[d.Coordinador]) {
+                dotacionPorCoordinador[d.Coordinador] = parseFloat(d.Dotacion_Activa) || 0;
+            }
+        }
+    });
+    const totalDotacion = Object.values(dotacionPorCoordinador).reduce((sum, val) => sum + val, 0);
+    document.getElementById('dotacionTotal').textContent = formatNumber(totalDotacion) + ' ejecutivos';
+
+    // TOP NAP - usar datos completos
+    const porCoordinadorNAP = {};
+    datosTabla1.forEach(d => {
+        if (!porCoordinadorNAP[d.Coordinador]) porCoordinadorNAP[d.Coordinador] = 0;
+        porCoordinadorNAP[d.Coordinador] += parseFloat(d.NAP) || 0;
+    });
+    const topCoordNAP = Object.entries(porCoordinadorNAP).sort((a, b) => b[1] - a[1])[0];
+    if (topCoordNAP) {
+        document.getElementById('topNAP').textContent = topCoordNAP[0];
+        document.getElementById('topNAPValor').textContent = 'NAP: ' + formatNumber(topCoordNAP[1]);
+    } else {
+        document.getElementById('topNAP').textContent = '-';
+        document.getElementById('topNAPValor').textContent = '-';
+    }
+
+    // TOP Negocios - usar datos completos
+    const porCoordinadorNegocios = {};
+    datosTabla1.forEach(d => {
+        if (!porCoordinadorNegocios[d.Coordinador]) porCoordinadorNegocios[d.Coordinador] = 0;
+        porCoordinadorNegocios[d.Coordinador] += parseFloat(d.Negocios) || 0;
+    });
+    const topCoordNegocios = Object.entries(porCoordinadorNegocios).sort((a, b) => b[1] - a[1])[0];
+    if (topCoordNegocios) {
+        document.getElementById('topNegocios').textContent = topCoordNegocios[0];
+        document.getElementById('topNegociosValor').textContent = formatNumber(topCoordNegocios[1]) + ' negocios';
+    } else {
+        document.getElementById('topNegocios').textContent = '-';
+        document.getElementById('topNegociosValor').textContent = '-';
+    }
+
+    // Eficiencia NAP - usar datos completos
+    //const totalNAP = datosTabla1.reduce((sum, d) => sum + (parseFloat(d.NAP) || 0), 0);
+    //const totalRegistros = datosTabla2.reduce((sum, d) => sum + (parseFloat(d.Registros_Cargados) || 0), 0);
+    //const eficiencia = totalRegistros > 0 ? ((totalNAP / totalRegistros) * 100).toFixed(1) + '%' : '0%';
+    //document.getElementById('eficienciaNAPAnual').textContent = eficiencia;
+
+    // Mes mayor NAP - usar datos completos
+    const porMes = {};
+    datosTabla1.forEach(d => {
+        if (d.Mes) {
+            if (!porMes[d.Mes]) porMes[d.Mes] = 0;
+            porMes[d.Mes] += parseFloat(d.NAP) || 0;
+        }
+    });
+    const mesMayor = Object.entries(porMes).sort((a, b) => b[1] - a[1])[0];
+    if (mesMayor) {
+        document.getElementById('mesMayorNAP').textContent = mesMayor[0];
+        document.getElementById('mesMayorNAPValor').textContent = 'NAP: ' + formatNumber(mesMayor[1]);
+    } else {
+        document.getElementById('mesMayorNAP').textContent = '-';
+        document.getElementById('mesMayorNAPValor').textContent = '-';
+    }
+
+    // Negocios promedio - usar datos completos
+    const totalNegocios = datosTabla1.reduce((sum, d) => sum + (parseFloat(d.Negocios) || 0), 0);
+    const mesesUnicos = [...new Set(datosTabla1.map(d => d.Mes))].filter(m => m).length;
+    const promedio = mesesUnicos > 0 ? (totalNegocios / mesesUnicos).toFixed(0) : 0;
+    document.getElementById('negociosPromedio').textContent = formatNumber(promedio);
+
+    // TOP Clínica - usar datos completos
+    const porClinica = {};
+    datosTabla1.forEach(d => {
+        if (d.Clinica) {
+            if (!porClinica[d.Clinica]) porClinica[d.Clinica] = 0;
+            porClinica[d.Clinica] += parseFloat(d.NAP) || 0;
+        }
+    });
+    const topClinica = Object.entries(porClinica).sort((a, b) => b[1] - a[1])[0];
+    if (topClinica) {
+        document.getElementById('topClinica').textContent = topClinica[0];
+        document.getElementById('topClinicaValor').textContent = 'NAP: ' + formatNumber(topClinica[1]);
+    } else {
+        document.getElementById('topClinica').textContent = '-';
+        document.getElementById('topClinicaValor').textContent = '-';
+    }
+}
+
+        function actualizarGraficoNAPMensual() {
+            const datosPorMes = {};
+            
+            // Agrupar datos por mes
+            datosFiltrados.forEach(d => {
+                const mes = d.Mes ? d.Mes.toString().trim() : null;
+                if (mes) {
+                    if (!datosPorMes[mes]) datosPorMes[mes] = 0;
+                    datosPorMes[mes] += parseFloat(d.NAP) || 0;
+                }
+            });
+
+            // Obtener meses presentes en los datos y ordenarlos
+            const mesesPresentes = Object.keys(datosPorMes);
+            const meses = ordenMeses.filter(m => mesesPresentes.includes(m));
+            
+            // Si no hay meses en el orden predefinido, usar los que haya
+            const mesesFinales = meses.length > 0 ? meses : mesesPresentes.sort();
+            const valores = mesesFinales.map(m => datosPorMes[m] || 0);
+
+            console.log('Datos del gráfico NAP:', { mesesFinales, valores, datosPorMes });
+
+            crearActualizarGrafico('chartNAPMensual', {
+                type: 'bar',
+                data: {
+                    labels: mesesFinales,
+                    datasets: [{
+                        label: 'NAP Mensual',
+                        data: valores,
+                        backgroundColor: '#2980b9',
+                        borderColor: '#1f618d',
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'NAP: ' + formatNumber(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => formatNumber(value)
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function actualizarGraficoNegociosCoordinador() {
+            const datosPorCoord = {};
+            datosFiltrados.forEach(d => {
+                if (!datosPorCoord[d.Coordinador]) datosPorCoord[d.Coordinador] = 0;
+                datosPorCoord[d.Coordinador] += parseFloat(d.Negocios) || 0;
+            });
+
+            const coordinadores = Object.keys(datosPorCoord).sort();
+            const valores = coordinadores.map(c => datosPorCoord[c]);
+
+            crearActualizarGrafico('chartNegociosCoordinador', {
+                type: 'bar',
+                data: {
+                    labels: coordinadores,
+                    datasets: [{
+                        label: 'Negocios',
+                        data: valores,
+                        backgroundColor: '#27ae60',
+                        borderColor: '#1e8449',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function actualizarGraficosClinica() {
+    // Obtener todas las clínicas únicas de datosTabla1 (donde están los negocios)
+    const clinicasSet = new Set();
+    datosFiltrados.forEach(d => {
+        if (d.Clinica) {
+            clinicasSet.add(d.Clinica);
+        }
+    });
+    const clinicas = Array.from(clinicasSet).sort();
+
+    // Calcular negocios por clínica
+    const negociosPorClinica = {};
+    datosFiltrados.forEach(d => {
+        if (d.Clinica) {
+            if (!negociosPorClinica[d.Clinica]) {
+                negociosPorClinica[d.Clinica] = 0;
+            }
+            negociosPorClinica[d.Clinica] += parseFloat(d.Negocios) || 0;
+        }
+    });
+
+    const datosNegocios = clinicas.map(c => negociosPorClinica[c] || 0);
+
+    crearActualizarGrafico('chartEficiencia', {
+        type: 'bar',
+        data: {
+            labels: clinicas,
+            datasets: [{
+                label: 'Negocios',
+                data: datosNegocios,
+                backgroundColor: '#27ae60',
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => `Negocios: ${formatNumber(context.parsed.y)}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { 
+                        callback: (value) => formatNumber(value)
+                    }
+                }
+            }
+        }
+    });
+}
+
+        function crearActualizarGrafico(canvasId, config) {
+            try {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    console.error('Canvas no encontrado:', canvasId);
+                    return;
+                }
+                
+                // Destruir gráfico anterior si existe
+                if (charts[canvasId]) {
+                    charts[canvasId].destroy();
+                    charts[canvasId] = null;
+                }
+                
+                // Crear nuevo gráfico
+                const ctx = canvas.getContext('2d');
+                charts[canvasId] = new Chart(ctx, config);
+                
+                console.log('Gráfico creado:', canvasId);
+            } catch (error) {
+                console.error('Error al crear gráfico', canvasId, error);
+            }
+        }
+
+        function actualizarTablaDetalle() {
+            const tbody = document.getElementById('tablaDetalleBody');
+            tbody.innerHTML = '';
+
+            datosFiltrados.forEach(d => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${d.Coordinador || ''}</td>
+                    <td>${d.Clinica || ''}</td>
+                    <td>${d.Equipo || ''}</td>
+                    <td>${d.Mes || ''}</td>
+                    <td>${formatNumber(d.NAP)}</td>
+                    <td>${formatNumber(d.Negocios)}</td>
+                    <td>${formatNumber(d.Dotacion_Activa)}</td>
+                `;
+            });
+        }
+
+        function buscarEnTabla() {
+            const input = document.getElementById('searchTable').value.toLowerCase();
+            const rows = document.getElementById('tablaDetalleBody').getElementsByTagName('tr');
+
+            for (let row of rows) {
+                row.style.display = row.textContent.toLowerCase().includes(input) ? '' : 'none';
+            }
+        }
+
+        function ordenarTabla(columna) {
+            const tbody = document.getElementById('tablaDetalleBody');
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            rows.sort((a, b) => {
+                const aVal = a.getElementsByTagName('td')[columna].textContent;
+                const bVal = b.getElementsByTagName('td')[columna].textContent;
+                
+                const aNum = parseFloat(aVal.replace(/,/g, ''));
+                const bNum = parseFloat(bVal.replace(/,/g, ''));
+                
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return ordenAscendente ? aNum - bNum : bNum - aNum;
+                }
+                
+                return ordenAscendente ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            });
+
+            ordenAscendente = !ordenAscendente;
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function exportarCSV() {
+            let csv = 'Coordinador,Clinica,Equipo,Mes,NAP,Negocios,Dotacion\n';
+            datosFiltrados.forEach(d => {
+                csv += `${d.Coordinador},${d.Clinica},${d.Equipo},${d.Mes},${d.NAP},${d.Negocios},${d.Dotacion_Activa}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dashboard_export.csv';
+            a.click();
+        }
+
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseFloat(num).toLocaleString('es-CL');
+        }
+
+        window.onload = function() {
+            cargarDatos();
+        };
+    </script>
+</body>
+</html>
