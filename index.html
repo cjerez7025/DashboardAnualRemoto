@@ -425,76 +425,123 @@
     }
 }
 
-        function actualizarGraficoNAPMensual() {
-            const datosPorMes = {};
-            
-            // Agrupar datos por mes
-            datosFiltrados.forEach(d => {
-                const mes = d.Mes ? d.Mes.toString().trim() : null;
-                if (mes) {
-                    if (!datosPorMes[mes]) datosPorMes[mes] = 0;
-                    datosPorMes[mes] += parseFloat(d.NAP) || 0;
-                }
-            });
+    function actualizarGraficoNAPMensual() {
+    const datosPorMes = {};
+    const negociosPorMes = {};
+    
+    // Agrupar datos por mes
+    datosFiltrados.forEach(d => {
+        const mes = d.Mes ? d.Mes.toString().trim() : null;
+        if (mes) {
+            if (!datosPorMes[mes]) datosPorMes[mes] = 0;
+            if (!negociosPorMes[mes]) negociosPorMes[mes] = 0;
+            datosPorMes[mes] += parseFloat(d.NAP) || 0;
+            negociosPorMes[mes] += parseFloat(d.Negocios) || 0;
+        }
+    });
 
-            // Obtener meses presentes en los datos y ordenarlos
-            const mesesPresentes = Object.keys(datosPorMes);
-            const meses = ordenMeses.filter(m => mesesPresentes.includes(m));
-            
-            // Si no hay meses en el orden predefinido, usar los que haya
-            const mesesFinales = meses.length > 0 ? meses : mesesPresentes.sort();
-            const valores = mesesFinales.map(m => datosPorMes[m] || 0);
+    // Obtener meses presentes en los datos y ordenarlos
+    const mesesPresentes = Object.keys(datosPorMes);
+    const meses = ordenMeses.filter(m => mesesPresentes.includes(m));
+    
+    // Si no hay meses en el orden predefinido, usar los que haya
+    const mesesFinales = meses.length > 0 ? meses : mesesPresentes.sort();
+    const valoresNAP = mesesFinales.map(m => datosPorMes[m] || 0);
+    const valoresNegocios = mesesFinales.map(m => negociosPorMes[m] || 0);
 
-            console.log('Datos del gráfico NAP:', { mesesFinales, valores, datosPorMes });
+    console.log('Datos del gráfico NAP:', { mesesFinales, valoresNAP, valoresNegocios });
 
-            crearActualizarGrafico('chartNAPMensual', {
-                type: 'bar',
-                data: {
-                    labels: mesesFinales,
-                    datasets: [{
-                        label: 'NAP Mensual',
-                        data: valores,
-                        backgroundColor: '#2980b9',
-                        borderColor: '#1f618d',
-                        borderWidth: 2,
-                        borderRadius: 4
-                    }]
+    // Crear gradientes para efecto 3D
+    const ctx = document.getElementById('chartNAPMensual').getContext('2d');
+    
+    const gradientNAP = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientNAP.addColorStop(0, '#3498db');
+    gradientNAP.addColorStop(1, '#1f618d');
+    
+    const gradientNegocios = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientNegocios.addColorStop(0, '#9CCC65');
+    gradientNegocios.addColorStop(1, '#689F38');
+
+    crearActualizarGrafico('chartNAPMensual', {
+        type: 'bar',
+        data: {
+            labels: mesesFinales,
+            datasets: [
+                {
+                    label: 'NAP',
+                    data: valoresNAP,
+                    backgroundColor: gradientNAP,
+                    borderColor: '#1f618d',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { 
-                            display: true,
-                            position: 'top'
+                {
+                    label: 'Negocios',
+                    data: valoresNegocios,
+                    backgroundColor: gradientNegocios,
+                    borderColor: '#689F38',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: 'bold'
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return 'NAP: ' + formatNumber(context.parsed.y);
-                                }
-                            }
+                        usePointStyle: true,
+                        pointStyle: 'rectRounded'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = formatNumber(context.parsed.y);
+                            return label + ': ' + value;
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (value) => formatNumber(value)
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: (value) => formatNumber(value)
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
-            });
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            }
         }
+    });
+}
 
         function actualizarGraficoNegociosCoordinador() {
             const datosPorCoord = {};
